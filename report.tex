@@ -1,0 +1,142 @@
+\documentclass[11pt,dvipdfmx]{jsarticle}
+
+\usepackage{eee}
+
+\begin{document}
+% トップページを書く
+\begin{jikkenTitle}
+ \gakunen{3} % 学年を記述。この行で全体の枠を表示
+ \numTitle{6}{数値計算（1）} % 実験番号、タイトルを記述
+ \subTitle{} % サブタイトルがあれば記述
+ \jikkenbi{令和元年mm月dd日(木)} % 実験日を記述
+ %\jikkenbiII{平成yy年mm月dd日(木)} % 実験日を記述(二日目がある場合。ない場合はこの行をコメントアウト)
+ \kyoudou{33xx 高専太朗、33yy 産技次郎、33zz 品川三郎} % 共同実験者名を記述
+ \yoteibi{mm/dd}% 予定日を記述
+ \hanNumberName{}{}{} % 班番号・学生番号・氏名を記述。この行でタイトルページの描画を終了
+\end{jikkenTitle}
+
+\section{目的}
+本実験では、
+\begin{itemize}
+	\item 回路図より連立方程式を立てられる。
+	\item C言語で（繰り返し、条件分岐、配列を用いた）基本プログラムが書ける。
+\end{itemize}
+ことを目的とする。
+
+\section{原理}
+\subsection{C言語について}
+自然言語（日本語や英語）は多義で曖昧さを持っているため、機械には理解するのが難しい。
+このため、計算して欲しい内容をコンピュータに伝えるには、専用の言語を使わなくてはならない。
+そのような言語をプログラミング言語といい、C言語の他にJava、C++、Visual Basic、Perl、Python、Fortran、Pascal、Cobol、BASIC、Rubyなど、様々な言語が様々な用途のために開発されている。
+C言語は、B言語をもとにAT\&Tのケン・トンプソンとデニス・リッチーによって、UNIXというOSを書くための言語として開発が開始された。
+1973年ごろに最初の完成を見ており、その後何度も仕様が拡張変更されている。
+
+\subsection{関数}
+\label{sec:func}
+C言語は手続き型言語と呼ばれ、ひとまとまりの手続きを関数という形でまとめて実装する。
+関数は複数の``引数''を受け取り、一つの値を返すものである（ただし、値を返さないvoid関数もある）。
+関数の記述法を\wpro{func}に示す。
+
+\begin{lstlisting}[escapechar=!, caption=関数の形, label=pro:func]
+!{\bf 返り値の型}!  関数名(!{\bf 引数1の型}! 引数1の名, !{\bf 引数2の型}! 引数2の名, ...){
+	型定義; // 必要な場合
+	文1;
+	文2;
+	文3;
+	return 式; // 必要な場合
+}
+\end{lstlisting}
+
+この関数を使う場合には、\wpro{use}のように記述する。
+関数に渡すのは単に式だけを記述する。
+
+\begin{lstlisting}[caption=関数の利用法, label=pro:use]
+代入する変数 = 関数名(関数に渡す式1, 関数に渡す式2, ...)
+\end{lstlisting}
+
+関数は呼び出し側と同じファイルに書かれていない場合、呼び出し側で関数名を書いても、コンパイラは関数について知ることができずにエラーとなる。
+このため、通常の関数を用いたプログラムでは以下のような構成を取ることが多い。
+\begin{enumerate}[(i)]
+	\item メインプログラムのファイル（◎◎.c）
+		\begin{itemize}
+			\item main関数を持つ
+			\item 作成した関数を呼び出す
+			\item 関数のプロトタイプ宣言が書かれた(iii)のヘッダファイルを読み込む
+		\end{itemize}
+	\item 関数の書かれたファイル（○○.c ）
+		\begin{itemize}
+			\item mainから呼ばれる関数が書かれる
+			\item 機能ごとに小分けにして、関数内から別の関数を呼び出すこともある
+			\item メインプログラムでも必要となる共通の設定ファイルは(iii)のヘッダファイルに分けて記述する
+		\end{itemize}
+	\item ヘッダファイル（○○.h）
+		\begin{itemize}
+			\item ○○.cに関連するプロトタイプ宣言・定数・構造体などを記述する
+			\item 通常、関数本体などは記述しない
+		\end{itemize}
+\end{enumerate}
+ここで出てきたプロトタイプ宣言とは、関数の諸元を説明するものである。
+\wpro{proto}に示すように、\wpro{func}の1行目を持ってきて、最後に「;」を付けるだけで良い。
+
+\begin{lstlisting}[escapechar=!, caption=プロトタイプ宣言, label=pro:proto]
+!{\bf 返り値の型}!  関数名(!{\bf 引数1の型}! 引数1の名, !{\bf 引数2の型}! 引数2の名, ...);
+\end{lstlisting}
+
+\subsection{テストファーストプログラミング}
+\ref{sec:func}章(i)のメインプログラムを書く時点では、(ii)で書かれた関数は完全に動作するものであることが望ましい。
+そこで、(ii)の関数群が完全に動作することを保証するために、通常は以下のテストファーストプログラムを(ii)より先に作成する。
+
+\begin{enumerate}[(i)]
+	\setcounter{enumi}{3}
+	\item テストプログラム（text○○.c）
+		\begin{itemize}
+			\item 複数の引数の組み合わせを使って関数を呼び出す
+			\item 関数の返値や関数によって変化する値を確認する
+			\item 特殊な処理をする値がある場合には、その前後の境界値でテストをすることが望ましい
+		\end{itemize}
+\end{enumerate}
+
+ここでは、二つの浮動小数点型引数$(x,y)$を受け取り、原点からの距離$R$を返す関数\verb+getR+のテストを例に説明する。
+テスト関数は\wpro{test}のように記述できる。このように基本的に二つ以上はテストを記載すること。
+
+\begin{lstlisting}[caption=testGetR.cの一部分, label=pro:test]
+void testGetR() {
+	testStart("testGetR");
+	assertEqualsDboule(getR(2.0, 1.0), sqrt(2.0*2.0 + 1.0*1.0));
+	assertEqualsDboule(getR(3.0, 4.0), sqrt(3.0*3.0 + 4.0*4.0));
+}
+\end{lstlisting}
+
+この時点では、\verb+getR+という関数が分からないため、コンパイルエラー（関数が分からないという警告）になる。
+この問題を解決するため、(iii)のプロトタイプ宣言が書かれたファイル（getR.h）を書く。
+ここには関数の諸元を示すプロトタイプ宣言を記載する。
+二つの引数を受け取り、一つの値を返すので\wpro{proto}を参考に、\wpro{getR}のように書けば良い。
+この時、testGetR.cにincludeの追加も忘れない。
+
+\begin{lstlisting}[caption=getR.h, label=pro:getR]
+double getR(double x, double y);
+\end{lstlisting}
+
+コンパイルをすると警告は出なくなるが、リンカで「\verb+_getR+」が無いというエラーになる。
+すぐに実装が思いつかない場合には、\wpro{test}のどちらかのテストが通るようにつじつまを合わせて中身を仮で書けば良い。
+
+\begin{lstlisting}[caption=getR.c, label=pro:getRc]
+double getR(double x, double y) {
+	return 2.0*2.0 + 1.0*1.0;
+}
+\end{lstlisting}
+
+このようにすることで、二つのassert文のうち片方だけは通る実装を書くことができる。
+2.0と1.0という具体的な場合の実装が書けているので、抽象的な$x$、$y$の場合に差し替える作業を行えば良く、ゼロの状態から実装を書くことよりも難易度を下げることができる。
+
+\section{方法}
+\section{結果}
+\section{考察}
+\section{結論}
+
+\begin{thebibliography}{9}
+	\bibitem{aa}
+\end{thebibliography}
+
+\end{document}
+

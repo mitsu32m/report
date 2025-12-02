@@ -1,6 +1,7 @@
 \documentclass[11pt,dvipdfmx]{jsarticle}
 
 \usepackage{eee}
+\usepackage{url}
 
 \begin{document}
 % トップページを書く
@@ -8,11 +9,11 @@
  \gakunen{3} % 学年を記述。この行で全体の枠を表示
  \numTitle{6}{数値計算（1）} % 実験番号、タイトルを記述
  \subTitle{} % サブタイトルがあれば記述
- \jikkenbi{令和元年mm月dd日(木)} % 実験日を記述
+ \jikkenbi{令和6年11月20日(木)} % 実験日を記述
  %\jikkenbiII{平成yy年mm月dd日(木)} % 実験日を記述(二日目がある場合。ない場合はこの行をコメントアウト)
- \kyoudou{33xx 高専太朗、33yy 産技次郎、33zz 品川三郎} % 共同実験者名を記述
+ \kyoudou{} % 共同実験者名を記述
  \yoteibi{mm/dd}% 予定日を記述
- \hanNumberName{}{}{} % 班番号・学生番号・氏名を記述。この行でタイトルページの描画を終了
+ \hanNumberName{3}{3327}{中野光喜} % 班番号・学生番号・氏名を記述。この行でタイトルページの描画を終了
 \end{jikkenTitle}
 
 \section{目的}
@@ -130,12 +131,616 @@ double getR(double x, double y) {
 2.0と1.0という具体的な場合の実装が書けているので、抽象的な$x$、$y$の場合に差し替える作業を行えば良く、ゼロの状態から実装を書くことよりも難易度を下げることができる。
 
 \section{方法}
-\section{結果}
-\section{考察}
-\section{結論}
 
+\subsection{実験方法}
+
+\subsubsection{C言語による行列演算プログラムの作成}
+\begin{enumerate}
+    \item テストファーストプログラミングの手法に基づき，Gitリポジトリから初期ソースコードを取得した．
+    \item 行列サイズを $N = 100$ として扱うように開発環境を構築し，実装前に行列演算関数のテストコードを記述した．
+    \item 行列への値設定，加算，乗算，行と列の交換，行のスカラー倍，行のスカラー倍加算，掃き出し法による逆行列計算，連立一次方程式の求解の順に機能を実装した．
+    \item 各関数の実装完了ごとにコンパイルおよびテストを実行し，正しく動作することを確認した．
+    \item 実装した行列演算ライブラリを用いて，立方体状抵抗回路網を解析するプログラムを作成した．各ノードの電位を未知数とし，キルヒホッフの法則に基づく連立一次方程式を行列で表現して解を求めた． 解析条件として，特定の枝抵抗を開放しその他の抵抗を接続した場合，および全ての抵抗を $1\,\Omega$ とした場合の2条件を設定し，それぞれについて節点間を流れる電流値を算出した．
+\end{enumerate}
+\if0
+\subsubsection{MATLABを用いた数値計算と可視化}
+MATLABを用いて数値計算およびグラフ描画を行った。まず，ベクトルおよび行列を生成し，加算，減算，内積，要素ごとの乗算，転置，行列の乗算，逆行列の算出などの演算を行った。次に，時間範囲を $0 \le t \le 5$ とし刻み幅を $0.01$ に設定したうえで，$y = e^{-t}$，$y = e^{-t} \sin 8t$，$\sin(2\pi t)$，および位相を $60^\circ$ 遅らせた信号の4種類を同一グラフ上に描画した。
+
+さらに，抵抗回路網のノード方程式を行列形式で表し，MATLABの逆行列演算を用いて電流値を算出した。加えて，2変数関数 $z = e^{-(x^2 + y^2)} \cos[2(x^2 + y^2)]$ を対象とし，定義域を $-2 \le x \le 2$，$-2 \le y \le 2$，刻み幅を $0.1$ として設定し，3次元メッシュ図として描画した。
+\fi
+\section{結果}
+本プログラム実験で実装したプログラムを以下に示す。なお、各プログラムの具体的な処理データについては、後述のテストコードにより確認できる。
+\subsection{行列の加算 (addMatrix)}
+行列の加算を行うプログラムをソースコード\ref{addmatrix_c},\ref{addmatrix_h}に示す。
+また実装時に作成したテストプログラムをソースコード\ref{addmatrix_test}に示す。これは、2つの行列の対応する要素同士を足し合わせるものである。
+\begin{lstlisting}[caption=addMatrix(matrix.c), label=addmatrix_c]
+void addMatrix(double anspp[N][N], double in1pp[N][N], double in2pp[N][N],int r, int c){
+int i, j;
+for (i = 0; i < r; i++) {
+for (j = 0; j < c; j++) {
+anspp[i][j] = in1pp[i][j]+in2pp[i][j];
+}
+}
+}
+\end{lstlisting}
+\begin{lstlisting}[caption=addMatrix(matrix.h), label=addmatrix_h]
+void addMatrix(double anspp[N][N], double in1pp[N][N], double in2pp[N][N],int r, int c);
+\end{lstlisting}
+\begin{lstlisting}[caption=testAddMatrix(testMatrix.c), label=addmatrix_test]
+void testAddMatrix() {
+double in1[N][N], in2[N][N], ans[N][N];
+double in1Values[] = { 3.1, 4.1, 5.9, 2.6, 5.3, 5.8 };
+double in2Values[] = { 9.7, 9.3, 2.3, 8.4, 6.2, 6.4 };
+testStart("addMatrix");
+setValues(in1, in1Values, 2, 3);
+setValues(in2, in2Values, 2, 3);
+addMatrix(ans, in1, in2, 2, 3);
+double correct1[] = { 3.1+9.7, 4.1+9.3, 5.9+2.3, 2.6+8.4, 5.3+6.2, 5.8+6.4 };
+assertEqualsMatrixAndValues(ans, correct1, 2, 3);
+addMatrix(ans, in1, in2, 2, 1);
+double correct2[] = { 3.1+9.7, 2.6+8.4 };
+assertEqualsMatrixAndValues(ans, correct2, 2, 1);
+}
+\end{lstlisting}
+\subsection{行列の乗算 (mulMatrix)}
+行列の乗算を行うプログラムをソースコード\ref{mulmatrix_c},\ref{mulmatrix_h}に示す。
+また実装時に作成したテストプログラムをソースコード\ref{mulmatrix_test}に示す。左行列の列数と右行列の行数が一致しているかを確認し、3重ループを用いて積を計算している。
+\begin{lstlisting}[caption=mulMatrix(matrix.c), label=mulmatrix_c]
+void mulMatrix(double anspp[N][N], double in1pp[N][N], int r1, int c1, double in2pp[N][N], int r2, int c2) {
+int i, j, k;
+if (c1 != r2) {
+    printf("error\n");
+    return;
+}
+
+for (i = 0; i < r1; i++) {           
+    for (j = 0; j < c2; j++) {       
+        
+        anspp[i][j] = 0.0;          
+        
+        for (k = 0; k < c1; k++) {  
+            anspp[i][j] += in1pp[i][k] * in2pp[k][j];
+        }
+    }
+}
+
+}
+\end{lstlisting}
+\begin{lstlisting}[caption=mulMatrix(matrix.h), label=mulmatrix_h]
+void mulMatrix(double anspp[N][N], double in1pp[N][N], int r1, int c1,double in2pp[N][N], int r2, int c2);
+\end{lstlisting}
+\begin{lstlisting}[caption=testMulMatrix(testMatrix.c), label=mulmatrix_test]
+void testMulMatrix() {
+double in1[N][N], in2[N][N], ans[N][N];
+double in1Values[] = { 3.1, 4.1, 5.9, 2.6, 5.3, 5.8 };
+double in2Values[] = { 7.9, 3.2, 3.8, 4.6, 2.6, 4.3 };
+testStart("mulMatrix");
+setValues(in1, in1Values, 2, 3);
+setValues(in2, in2Values, 3, 2);
+mulMatrix(ans, in1, 2, 3, in2, 3, 2);
+double correct1[] = {
+0.0 + 3.17.9 + 4.13.8 + 5.92.6, 0.0 + 3.13.2 + 4.14.6 + 5.94.3,
+0.0 + 2.67.9 + 5.33.8 + 5.82.6, 0.0 + 2.63.2 + 5.34.6 + 5.84.3 };
+assertEqualsMatrixAndValues(ans, correct1, 2, 2);
+mulMatrix(ans, in2, 3, 2, in1, 2, 3);
+double correct2[] = {
+0.0 + 7.93.1 + 3.22.6, 0.0 + 7.94.1 + 3.25.3, 0.0 + 7.95.9 + 3.25.8,
+0.0 + 3.83.1 + 4.62.6, 0.0 + 3.84.1 + 4.65.3, 0.0 + 3.85.9 + 4.65.8,
+0.0 + 2.63.1 + 4.32.6, 0.0 + 2.64.1 + 4.35.3, 0.0 + 2.65.9 + 4.35.8 };
+assertEqualsMatrixAndValues(ans, correct2, 3, 3);
+}
+\end{lstlisting}
+\subsection{行列の基本変形(定数倍・交換・加算)}
+行列の行や列に対する基本変形を行う関数群をソースコード\ref{trans_c},\ref{trans_h}に示す。
+またそれぞれのテストプログラムをソースコード\ref{trans_test}に示す。これらは指定された行をk倍する機能、行や列を入れ替える機能、ある行をk倍して別の行に加える機能を持つ。
+\begin{lstlisting}[caption=Transformations(matrix.c), label=trans_c]
+void rowCmulMatrix(double matpp[N][N], int r, int c, int n, double k) {
+int j;
+for (j = 0; j < c; j++) {
+    matpp[n-1][j] *= k;  
+}
+
+}
+void rowConvertMatrix(double matpp[N][N], int r, int c, int n1, int n2){
+double matsub[c];
+int i ;
+for(i=0;i<c;i++){
+matsub[i] = matpp[n1-1][i];
+}
+for(i=0;i<c;i++){
+matpp[n1-1][i] = matpp[n2-1][i];
+matpp[n2-1][i] = matsub[i];
+}
+}
+void colConvertMatrix(double matpp[N][N], int r, int c, int n1, int n2){
+double matsub[c];
+int i ;
+for(i=0;i<r;i++){
+matsub[i] = matpp[i][n1-1];
+}
+for(i=0;i<r;i++){
+matpp[i][n1-1] = matpp[i][n2-1];
+matpp[i][n2-1] = matsub[i];
+}
+}
+void rowCmulAddMatrix(double matpp[N][N], int r, int c,int n1, double k, int n2){
+double matsub[c];
+int i ;
+for(i=0;i<c;i++){
+matsub[i] = matpp[n1-1][i]*k;
+}
+for(i=0;i<c;i++){
+   matpp[n2-1][i] += matsub[i];
+}
+
+}
+\end{lstlisting}
+\begin{lstlisting}[caption=Transformations(matrix.h), label=trans_h]
+void rowCmulMatrix(double matpp[N][N], int r, int c, int n, double k);
+void rowConvertMatrix(double matpp[N][N], int r, int c, int n1, int n2);
+void colConvertMatrix(double matpp[N][N], int r, int c, int n1, int n2);
+void rowCmulAddMatrix(double matpp[N][N], int r, int c,int n1, double k, int n2);
+\end{lstlisting}
+\begin{lstlisting}[caption=Test Transformations(testMatrix.c), label=trans_test]
+void testCmul() {
+double in1[N][N], in2[N][N], ans[N][N];
+double in1Values[] = { 3.1, 4.1, 5.9, 2.6, 5.3, 5.8 };
+double in2Values[] = { 7.9, 3.2, 3.8, 4.6, 2.6, 4.3 };
+double k = 2;
+int n = 2;
+testStart("testCmul");
+setValues(in1, in1Values, 2, 3);
+setValues(in2, in2Values, 3, 2);
+rowCmulMatrix(in1, 2, 3, n, k);
+rowCmulMatrix(in2, 3, 2, n, k);
+double correct1[] = { 3.1, 4.1, 5.9, 2.62, 5.32, 5.8*2 };
+assertEqualsMatrixAndValues(in1, correct1, 2, 3);
+double correct2[] = { 7.9, 3.2, 3.82, 4.62, 2.6, 4.3 };
+assertEqualsMatrixAndValues(in2, correct2, 3, 2);
+}
+void testrCon() {
+double in1[N][N], in2[N][N], ans[N][N];
+double in1Values[] = { 3.1, 4.1, 5.9, 2.6, 5.3, 5.8 };
+double in2Values[] = { 7.9, 3.2, 3.8, 4.6, 2.6, 4.3 };
+int n1 = 1;
+int n2 = 2;
+testStart("testCon");
+setValues(in1, in1Values, 2, 3);
+setValues(in2, in2Values, 3, 2);
+rowConvertMatrix(in1, 2, 3, n1, n2);
+rowConvertMatrix(in2, 3, 2, n1, n2);
+double correct1[] = { 2.6, 5.3, 5.8, 3.1, 4.1, 5.9 };
+assertEqualsMatrixAndValues(in1, correct1, 2, 3);
+double correct2[] = { 3.8, 4.6, 7.9, 3.2, 2.6, 4.3 };
+assertEqualsMatrixAndValues(in2, correct2, 3, 2);
+}
+void testcCon() {
+double in1[N][N], in2[N][N], ans[N][N];
+double in1Values[] = { 3.1, 4.1, 5.9, 2.6, 5.3, 5.8 };
+double in2Values[] = { 7.9, 3.2, 3.8, 4.6, 2.6, 4.3 };
+int n1 = 1;
+int n2 = 2;
+testStart("testrCon");
+setValues(in1, in1Values, 2, 3);
+setValues(in2, in2Values, 3, 2);
+colConvertMatrix(in1, 2, 3, n1, n2);
+colConvertMatrix(in2, 3, 2, n1, n2);
+double correct1[] = { 4.1, 3.1, 5.9,
+5.3,2.6, 5.8 };
+assertEqualsMatrixAndValues(in1, correct1, 2, 3);
+double correct2[] = { 3.2,7.9,
+4.6, 3.8,
+4.3 ,2.6};
+assertEqualsMatrixAndValues(in2, correct2, 3, 2);
+}
+void testrCmuladd() {
+double in1[N][N], in2[N][N];
+double in1Values[] = { 3.1, 4.1, 5.9, 2.6, 5.3, 5.8 };
+double in2Values[] = { 7.9, 3.2, 3.8, 4.6, 2.6, 4.3 };
+double k = 2;
+int n1 = 1;
+int n2 = 2;
+testStart("testrCmuladd");
+setValues(in1, in1Values, 2, 3);
+setValues(in2, in2Values, 3, 2);
+rowCmulAddMatrix(in1, 2, 3, n1,k, n2);
+rowCmulAddMatrix(in2, 3, 2, n1,k, n2);
+double correct1[] = { 3.1, 4.1, 5.9, 2.6+3.12, 5.3+4.12, 5.8+5.9*2 };
+assertEqualsMatrixAndValues(in1, correct1, 2, 3);
+double correct2[] = { 7.9, 3.2, 3.8+7.92, 4.6+3.22, 2.6, 4.3 };
+assertEqualsMatrixAndValues(in2, correct2, 3, 2);
+}
+\end{lstlisting}
+\subsection{逆行列の計算 (inverseMatrix)}
+掃き出し法を用いて逆行列を計算するプログラムをソースコード\ref{inv_c},\ref{inv_h}に示す。
+また実装時に作成したテストプログラムをソースコード\ref{inv_test}に示す。単位行列を右側に連結し、前進消去と後退代入を行うことで逆行列を求めている。
+\begin{lstlisting}[caption=inverseMatrix(matrix.c), label=inv_c]
+int inverseMatrix(double anspp[N][N], double inpp[N][N], int n) {
+int i, j, k, n2;
+n2 = n * 2;
+for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+        anspp[i][j] = inpp[i][j];
+        anspp[i][j + n] = (i == j) ? 1.0 : 0.0;
+    }
+}
+
+
+for (j = 0; j < n - 1; j++) {
+    int p = j; 
+    double vmax = fabs(anspp[j][j]);
+    
+  
+    for (i = j + 1; i < n; i++) {
+        double v = fabs(anspp[i][j]);
+        if (v > vmax) {
+            p = i;
+            vmax = v;
+        }
+    }
+
+
+    if (vmax < 1.0e-12) {
+        fprintf(stderr, "too small pivot! \n");
+        return 1;
+    }
+
+ 
+    if (p != j) {
+        for (k = 0; k < n2; k++) {
+            double temp = anspp[j][k];
+            anspp[j][k] = anspp[p][k];
+            anspp[p][k] = temp;
+        }
+    }
+
+
+    for (i = j + 1; i < n; i++) {
+     
+        double w = -anspp[i][j] / anspp[j][j];
+        
+        
+        for (k = j; k < n2; k++) {
+            anspp[i][k] += w * anspp[j][k];
+        }
+    }
+}
+
+
+for (j = n - 1; j >= 0; j--) {
+    
+    if (fabs(anspp[j][j]) < 1.0e-12) {
+         fprintf(stderr, "singular matrix!\n");
+         return 1;
+    }
+
+    double div = 1.0 / anspp[j][j];
+    for (k = 0; k < n2; k++) {
+        anspp[j][k] *= div;
+    }
+
+    
+    for (i = j - 1; i >= 0; i--) {
+        double w = -anspp[i][j]; 
+        
+
+        for (k = 0; k < n2; k++) {
+            anspp[i][k] += w * anspp[j][k];
+        }
+    }
+}
+for (j = 0; j < n; j++) {
+ 
+    for (i = 0; i < n; i++) {
+         double temp = anspp[i][j];
+         anspp[i][j] = anspp[i][j + n];
+         anspp[i][j + n] = temp;
+    }
+}
+
+
+return 0;
+
+}
+\end{lstlisting}
+\begin{lstlisting}[caption=inverseMatrix(matrix.h), label=inv_h]
+int inverseMatrix(double anspp[N][N], double inpp[N][N], int n);
+\end{lstlisting}
+\begin{lstlisting}[caption=testInverseMatrix(testMatrix.c), label=inv_test]
+void testInverseMatrix() {
+double in1[N][N], in2[N][N], ans[N][N];
+// in1: 逆行列がないパターン (Det = 0)
+double in1Values[] = { 1, 1, 1, 1 }; 
+
+// in2: 逆行列があるパターン (Det = 3)
+double in2Values[] = { 2, 1, 1, 2 }; 
+
+double correct1[] = { 2.0/3.0, -1.0/3.0, -1.0/3.0, 2.0/3.0 };
+
+int k = 2; // 行列のサイズ
+
+
+int success = 0;
+int failure = 1;
+
+testStart("testInverseMatrix");
+
+setValues(in1, in1Values, 2, 2);
+setValues(in2, in2Values, 2, 2);
+
+// in1 は逆行列がないので、失敗(0)が返るのが正しい
+assertEqualsInt(inverseMatrix(ans, in1, k), failure);
+
+// in2 は逆行列があるので、成功(1)して、結果をチェックする
+assertEqualsInt(inverseMatrix(ans, in2, k), success);
+
+assertEqualsMatrixAndValues(ans, correct1, 2, 2);
+
+}
+\end{lstlisting}
+\subsection{連立一次方程式の求解 (solveEquations)}
+逆行列を利用して連立一次方程式 $Ax=b$ を解くプログラムをソースコード\ref{solve_c},\ref{solve_h}に示す。
+また実装時に作成したテストプログラムをソースコード\ref{solve_test}に示す。逆行列の計算に成功した場合、逆行列とベクトル $b$ の積として解 $x$ を求めている。
+\begin{lstlisting}[caption=solveEquations(matrix.c), label=solve_c]
+int solveEquations(double xpp[N][N], double app[N][N], double bpp[N][N], int n) {
+double invA[N][N];
+int result;
+int i, j;
+result = inverseMatrix(invA, app, n);
+
+
+if (result != 0) {
+    return 1;
+}
+ for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+        xpp[i][j] = 0.0;
+    }
+}
+
+mulMatrix(xpp, invA, n, n, bpp, n, 1);
+
+
+return 0;  
+
+}
+\end{lstlisting}
+\begin{lstlisting}[caption=solveEquations(matrix.h), label=solve_h]
+int solveEquations(double xpp[N][N], double app[N][N],double bpp[N][N], int n);
+\end{lstlisting}
+\begin{lstlisting}[caption=testSolveEquations(testMatrix.c), label=solve_test]
+void testSolveEquations() {
+double xpp[N][N], app[N][N], bpp[N][N];
+// --- ケース1: 解ける場合 (Success) ---
+// A = {{1, 2}, {2, 1}}
+double aValues[] = { 1, 2, 2, 1 };
+
+// b = {{3}, {3}} 
+// ※引数が[N][N]なので、1列目に値が入るように {3, 0, 3, 0} と設定するよ
+// (setValuesが左上から順に埋めると仮定)
+double bValues[] = { 3, 0, 3, 0 };
+
+// 期待する解 x = {{1}, {1}} (1列目が1, 1になればOK)
+double correctX[] = { 1, 0, 1, 0 };
+
+// --- ケース2: 解けない場合 (Failure) ---
+// A = {{1, 1}, {1, 1}} (行列式が0)
+double aSingular[] = { 1, 1, 1, 1 };
+
+int n = 2;
+int success = 0; // 画像の仕様通り、成功は 0
+int failure = 1; // 失敗は 1
+
+testStart("testSolveEquations");
+
+// 1. 解けるパターンのテスト
+setValues(app, aValues, 2, 2);
+setValues(bpp, bValues, 2, 2);
+
+// 戻り値が 0 (成功) であることを確認
+assertEqualsInt(solveEquations(xpp, app, bpp, n), success);
+
+// 計算された x が正しいか確認 (サイズは2x2で渡すけど、実質見るのは1列目)
+assertEqualsMatrixAndValues(xpp, correctX, 2, 2);
+
+// 2. 解けないパターンのテスト
+setValues(app, aSingular, 2, 2);
+setValues(bpp, bValues, 2, 2); // bは何でもいい
+
+// 戻り値が 1 (失敗) であることを確認
+assertEqualsInt(solveEquations(xpp, app, bpp, n), failure);
+
+}
+\end{lstlisting}
+
+\subsection{回路問題}
+回路問題を解くメインプログラムをソースコード\ref{matrixmain_c}に示す。
+ここでは、抵抗の一部が開放された回路の電圧計算（問題i）と、立方体回路の節点間電流の計算（問題ii）を行っている。
+また、問題iと問題iiの両方のプログラムから、電流値$0.142857 \mathrm{A}$が得られた。
+
+\begin{lstlisting}[caption=matrixMain.c, label=matrixmain_c]
+#include <stdio.h>
+#include <math.h>
+
+#define N 100 // 行列の最大サイズ
+
+// プロトタイプ宣言 (matrix.c にある関数)
+void setValues(double anspp[N][N], double *inp, int r, int c);
+int solveEquations(double xpp[N][N], double app[N][N], double bpp[N][N], int n);
+
+// 結果を表示するための補助関数
+void printCurrent(char *label, double v_start, double v_end, double r) {
+double current = fabs(v_start - v_end) / r;
+printf("%s: %.6f A\n", label, current);
+}
+
+int main() {
+double A[N][N], RightSide[N][N], x[N][N];
+
+// ==========================================
+// 問題 i: 抵抗を取り外した回路 (節点5, 6の電圧を求める)
+// ==========================================
+printf("--- Problem i ---\n");
+
+double R56 = 1.0;
+double R67 = 2.0;
+double R58 = 4.0;
+double E = 1.0;     // 電源電圧 (V7)
+
+// 連立方程式を作る
+// 式1 (点5): (V5 - V6)/R56 + (V5 - V8)/R58 = 0
+//            整理すると: (1/R56 + 1/R58)*V5 + (-1/R56)*V6 = 0  (V8は0なので消える)
+
+// 式2 (点6): (V6 - V5)/R56 + (V6 - V7)/R67 = 0
+//            整理すると: (-1/R56)*V5 + (1/R56 + 1/R67)*V6 = E/R67 (V7=E なので右辺へ移動)
+
+// 左辺の係数 (V5, V6 に掛かっている数字)
+double eq_left_side_1[] = {
+    (1.0/R56 + 1.0/R58),   -(1.0/R56),           // 1つ目の式の係数 (V5, V6)
+   -(1.0/R56),             (1.0/R56 + 1.0/R67)   // 2つ目の式の係数 (V5, V6)
+};
+
+// 右辺の定数 (V がついていない数字)
+double eq_right_side_1[] = {
+    0.0,                   // 1つ目の式の右辺
+    E / R67                // 2つ目の式の右辺
+};
+
+// 値をセット
+setValues(A, eq_left_side_1, 2, 2);
+setValues(RightSide, eq_right_side_1, 2, 1);
+
+// 解く
+if (solveEquations(x, A, RightSide, 2) == 0) {
+    double v5 = x[0][0];
+    double v6 = x[1][0];
+    printCurrent("Current between Node 5 and 6", v5, v6, R56);
+} else {
+    printf("Failed to solve equations for Problem i.\n");
+}
+
+printf("\n");
+
+// ==========================================
+// 問題 ii: 立方体回路 (節点1～6の電圧を求める)
+// ==========================================
+printf("--- Problem ii ---\n");
+
+double R = 1.0;      // 抵抗は全部 1オーム
+double E_cube = 1.0; // 電源電圧 (V7)
+// V8 (GND) は 0V
+
+// キルヒホッフの法則で方程式を6個作る
+
+// 点1の式: (V1-V2)/R + (V1-V4)/R + (V1-V5)/R = 0
+// 整理 ->  (3/R)*V1 + (-1/R)*V2 + (-1/R)*V4 + (-1/R)*V5 = 0
+
+// 点2の式: (V2-V1)/R + (V2-V3)/R + (V2-V6)/R = 0
+// 整理 ->  (-1/R)*V1 + (3/R)*V2 + (-1/R)*V3 + (-1/R)*V6 = 0
+
+// 点3の式: (V3-V2)/R + (V3-V4)/R + (V3-V7)/R = 0
+// 整理 ->  (-1/R)*V2 + (3/R)*V3 + (-1/R)*V4 = V7/R  (V7=E なので右辺は E/R になる)
+
+// 点4の式: (V4-V1)/R + (V4-V3)/R + (V4-V8)/R = 0
+// 整理 ->  (-1/R)*V1 + (-1/R)*V3 + (3/R)*V4 = 0     (V8=0 なので右辺は 0)
+
+// 点5の式: (V5-V1)/R + (V5-V6)/R + (V5-V8)/R = 0
+// 整理 ->  (-1/R)*V1 + (3/R)*V5 + (-1/R)*V6 = 0     (V8=0 なので右辺は 0)
+
+// 点6の式: (V6-V2)/R + (V6-V5)/R + (V6-V7)/R = 0
+// 整理 ->  (-1/R)*V2 + (-1/R)*V5 + (3/R)*V6 = V7/R  (V7=E なので右辺は E/R になる)
+
+// これをそのまま配列にするだけ
+
+// 左辺の係数 (V1〜V6の係数を順番に並べる)
+double eq_left_side_2[] = {
+    // V1,      V2,      V3,      V4,      V5,      V6
+     3.0/R,  -1.0/R,    0.0,   -1.0/R,  -1.0/R,    0.0,  // 点1の式の係数
+    -1.0/R,   3.0/R,  -1.0/R,    0.0,     0.0,   -1.0/R, // 点2の式の係数
+      0.0,   -1.0/R,   3.0/R,  -1.0/R,    0.0,     0.0,  // 点3の式の係数
+    -1.0/R,    0.0,   -1.0/R,   3.0/R,    0.0,     0.0,  // 点4の式の係数
+    -1.0/R,    0.0,     0.0,     0.0,    3.0/R,  -1.0/R, // 点5の式の係数
+      0.0,   -1.0/R,    0.0,     0.0,   -1.0/R,   3.0/R  // 点6の式の係数
+};
+
+// 右辺の定数 (方程式の右側の値)
+double eq_right_side_2[] = {
+    0.0,            // 点1の式の右辺
+    0.0,            // 点2の式の右辺
+    E_cube / R,     // 点3の式の右辺 (+E/R)
+    0.0,            // 点4の式の右辺
+    0.0,            // 点5の式の右辺
+    E_cube / R      // 点6の式の右辺 (+E/R)
+};
+
+// 値をセット
+setValues(A, eq_left_side_2, 6, 6);
+setValues(RightSide, eq_right_side_2, 6, 1);
+
+// 解く
+if (solveEquations(x, A, RightSide, 6) == 0) {
+    double v1 = x[0][0];
+    double v2 = x[1][0];
+    printCurrent("Current between Node 1 and 2", v1, v2, R);
+} else {
+    printf("Failed to solve equations for Problem ii.\n");
+}
+
+return 0;
+
+
+}
+\end{lstlisting}
+
+
+\section{考察}
+以下に考察内容を示す。
+\begin{enumerate}
+
+\item 何故テストファーストプログラミングをする必要があるのかを示せ。
+
+大規模なプログラムを作成する際、全ての関数を一気に実装してから動作確認を行うと、バグが発生した原因の特定が困難になる。テストファーストプログラミングでは、実装前に関数が満たすべき仕様（入力と期待される出力）をテストコードとして記述し、小さな単位で動作を保証しながら開発を進めることができる。
+これにより、バグの早期発見が可能になるだけでなく、具体的な使用例を先に記述することで実装のイメージが整理され、手戻りを防げるという利点がある。
+
+\item  for 文の利点を挙げよ。
+
+while文と比較して、ループの「初期化」「継続条件」「更新処理（インクリメントなど）」を一つの構文ヘッダ内にまとめて記述できる点が利点である。
+これにより、繰り返し回数があらかじめ決まっている処理（行列の全要素へのアクセスなど）を簡潔に記述でき、無限ループなどのミスを防ぎやすく、コードの可読性が向上する。
+
+\item  この実習で得られた知見をまとめよ。
+
+本実習を通じて、以下の知見を得た。
+
+\begin{enumerate}
+\item 行列計算の実装: C言語において行列を2次元配列として扱い、ポインタを用いて関数間で受け渡す手法を習得した。
+
+\item 連立一次方程式の解法: ガウスの消去法（掃き出し法）のアルゴリズムを理解し、前進消去と後退代入の手順をプログラムとして実装できた。
+
+
+\item テストファーストプログラミング: 単体テストを作成し、関数の正当性を確認しながら開発を進める手法の有効性を確認した。
+\end{enumerate}
+\item  実習から浮かんだ技術的な疑問点を挙げよ。
+
+今回の実習における逆行列計算プログラム（inverseMatrix関数）では、対角成分の絶対値が最大となる行を入れ替える「部分ピボット選択」を実装した。
+もし、このピボット選択を行わず、対角成分が0でないという条件だけで計算を進めた場合、計算結果の精度（数値誤差）には具体的にどの程度の影響が出るのか。また、どのようなメカニズムで誤差が増大するのかという点に疑問を持った。
+
+\item  上の疑問点を調査し解決せよ。
+
+ガウスの消去法においてピボット選択を行わない場合、絶対値が非常に小さな値がピボット（除数）となる可能性がある。浮動小数点演算において、絶対値が極端に小さい数で除算を行うと、その後の演算結果が元の係数に比べて極端に大きくなり、数値の有効桁数が失われる「桁落ち」や「情報落ち」といった丸め誤差が顕著に発生する\cite{aa}。
+
+これを防ぐためには、各列において絶対値が最大の要素をピボットとして選ぶことが有効であるとされる\cite{pivoting}。これにより、乗数の絶対値を1以下に抑えることができ、誤差の拡大を防ぐことで数値的な安定性を保つことができる。
+\end{enumerate}
+\section{結論}
+本実験で
+\begin{itemize}
+	\item 回路図より連立方程式を立てられた。
+	\item C言語で（繰り返し、条件分岐、配列を用いた）基本プログラムが書けた。
+\end{itemize}
 \begin{thebibliography}{9}
-	\bibitem{aa}
+	\bibitem{aa} 明治大学, 連立方程式の解法, 明治大学, \url{https://www.isc.meiji.ac.jp/~re00108/ch07/index.html}, Dec. 2, 2025.
+
+	\bibitem{pivoting} 中島研吾, ピボット選択, 東京大学, \url{http://nkl.cc.u-tokyo.ac.jp/11s/3D/pivoting.pdf}, Dec. 2, 2025.
+
 \end{thebibliography}
 
 \end{document}
